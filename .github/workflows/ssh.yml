@@ -30,7 +30,7 @@ jobs:
           docker_host: ${{ secrets.DOCKER_HOST }}
           context_name: remote
           use_context: true
-          # ssh_cert: ${{ secrets.SSH_CERT }}
+          ssh_cert: ${{ secrets.SSH_CERT }}
           ssh_key: ${{ secrets.SSH_KEY }}
 
       - name: Run a docker command
