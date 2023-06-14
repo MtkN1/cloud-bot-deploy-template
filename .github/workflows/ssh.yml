@@ -30,4 +30,9 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.KEY }}
-          script: hostname
+          script: docker version
+
+      - name: Run a multi-line script
+        run: |
+          docker version
+          docker compose version
