@@ -44,4 +44,4 @@ jobs:
           aws-region: ap-northeast-1
 
       - name: Run a one-line script
-        run: aws sts get-caller-identity
+        run: aws ec2 run-instances --image-id $(aws ssm get-parameter --name /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-6.1-x86_64 --query Parameter.Value --output text) --count 1 --instance-type t2.micro --key-name id_ed25519 --instance-market-options="MarketType=spot" --query "Instances[].InstanceId" --output text
