@@ -3,14 +3,13 @@ name: Docker Compose Deploy
 on: push
 
 jobs:
-  build:
+  depoy:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: docker-context-create
-        uses: ArwynFr/actions-docker-context@v2
+      - uses: ArwynFr/actions-docker-context@v2
         with:
           docker_host: ${{ secrets.DOCKER_HOST }}
           context_name: remote
@@ -18,5 +17,5 @@ jobs:
           ssh_cert: ${{ secrets.SSH_CERT }}
           ssh_key: ${{ secrets.SSH_KEY }}
 
-      - name: Run a docker command
+      - name: Docker Compose Up
         run: docker compose up --build -d
