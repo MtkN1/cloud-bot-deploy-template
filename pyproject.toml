@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "cloud-bot-deploy-template"
+version = "0.1.0"
+description = ""
+authors = ["MtkN1 <51289448+MtkN1@users.noreply.github.com>"]
+readme = "README.md"
+packages = [
+    {include = "monolithic_bot", from = "src"},
+    {include = "function_bot", from = "src"},
+]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

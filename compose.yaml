@@ -1,0 +1,13 @@
+services:
+  function_bot:
+    build:
+      context: .
+      args:
+        - PACKAGE_NAME=cloud-bot-deploy-template
+    command: [ "function_bot" ]
+  monolithic_bot:
+    build:
+      context: .
+      args:
+        - PACKAGE_NAME=cloud-bot-deploy-template
+    command: [ "monolithic_bot" ]
