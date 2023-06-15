@@ -5,9 +5,11 @@ services:
       args:
         - PACKAGE_NAME=cloud-bot-deploy-template
     command: [ "function_bot" ]
+    restart: on-failure
   monolithic_bot:
     build:
       context: .
       args:
         - PACKAGE_NAME=cloud-bot-deploy-template
     command: [ "monolithic_bot" ]
+    restart: unless-stopped
