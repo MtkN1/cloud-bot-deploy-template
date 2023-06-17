@@ -13,6 +13,7 @@ env:
     MY_CONTAINER_NAME
 
 permissions:
+  id-token: write
   contents: read
 
 jobs:
