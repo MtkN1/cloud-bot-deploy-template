@@ -43,6 +43,7 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: .
+          build-args: PACKAGE_NAME=cloud-bot-deploy-template
           push: true
           tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
           cache-from: type=gha
