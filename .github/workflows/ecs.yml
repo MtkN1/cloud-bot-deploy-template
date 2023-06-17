@@ -38,12 +38,6 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v4
-        with:
-          images: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
-
       - name: Build and push Docker image
         id: build-and-push
         uses: docker/build-push-action@v4
@@ -51,8 +45,7 @@ jobs:
           context: .
           build-args: PACKAGE_NAME=cloud-bot-deploy-template
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
