@@ -1,5 +1,5 @@
 {
-    "family": "monolithic_bot",
+    "family": "monolithic_bot_fargate",
     "containerDefinitions": [
         {
             "name": "monolithic_bot",
@@ -19,7 +19,7 @@
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-create-group": "true",
-                    "awslogs-group": "/ecs/monolithic_bot",
+                    "awslogs-group": "/ecs/monolithic_bot_fargate",
                     "awslogs-region": "ap-northeast-1",
                     "awslogs-stream-prefix": "ecs"
                 }
