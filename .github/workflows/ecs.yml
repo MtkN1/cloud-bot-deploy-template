@@ -5,7 +5,7 @@ on: push
 env:
   AWS_REGION: ap-northeast-1
   ECR_REPOSITORY: monolithic_bot
-  ECS_SERVICE: monolithic_bot_fargate
+  ECS_SERVICE: 
   ECS_CLUSTER: BotCluster
   ECS_TASK_DEFINITION: ./task_definitions/monolithic_bot.json
   CONTAINER_NAME: monolithic_bot
