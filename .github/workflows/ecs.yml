@@ -51,11 +51,12 @@ jobs:
         id: check-esc-service
         run: aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query "failures[0].reason" --output text
 
-      - name: Check Amazon ECS service
+      - name: Debug Amazon ECS service
         env:
           CHECH_OUTPUT: ${{ steps.check-esc-service.outputs }}
           CHECH_COND: ${{ steps.check-esc-service.outputs == 'MISSING' && env.ECS_SERVICE || '' }}
-        run: echo $CHECH_OUTPUT $CHECH_COND
+        run: |
+          echo $CHECH_OUTPUT $CHECH_COND
 
       # - name: Fill in the new image ID in the Amazon ECS task definition
       #   id: task-def
