@@ -5,7 +5,7 @@ on: push
 env:
   AWS_REGION: ap-northeast-1
   ECR_REPOSITORY: monolithic_bot
-  ECS_SERVICE: 
+  ECS_SERVICE: monolithic_bot_fargate
   ECS_CLUSTER: BotCluster
   ECS_TASK_DEFINITION: ./task_definitions/monolithic_bot.json
   CONTAINER_NAME: monolithic_bot
@@ -47,6 +47,10 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Check Amazon ECS service
+        id: check-esc-service
+        run: aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query "failures[0].reason" --output text
+
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -59,6 +63,5 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ env.ECS_SERVICE }}
+          service: ${{ steps.check-esc-service.outputs == 'MISSING' && '' || env.ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
