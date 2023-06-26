@@ -23,8 +23,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+      # - name: Set up Docker Buildx
+      #   uses: docker/setup-buildx-action@v2
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -33,35 +33,41 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+      # - name: Login to Amazon ECR
+      #   id: login-ecr
+      #   uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          build-args: PACKAGE_NAME=cloud-bot-deploy-template
-          push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+      # - name: Build, tag, and push image to Amazon ECR
+      #   uses: docker/build-push-action@v4
+      #   with:
+      #     context: .
+      #     build-args: PACKAGE_NAME=cloud-bot-deploy-template
+      #     push: true
+      #     tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
 
       - name: Check Amazon ECS service
         id: check-esc-service
         run: aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query "failures[0].reason" --output text
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION }}
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+      - name: Check Amazon ECS service
+        env:
+          CHECH_OUTPUT: ${{ steps.check-esc-service.outputs }}
+          CHECH_COND: ${{ steps.check-esc-service.outputs == 'MISSING' && env.ECS_SERVICE || '' }}
+        run: echo $CHECH_OUTPUT $CHECH_COND
 
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ steps.check-esc-service.outputs == 'MISSING' && env.ECS_SERVICE || '' }}
-          cluster: ${{ env.ECS_CLUSTER }}
+      # - name: Fill in the new image ID in the Amazon ECS task definition
+      #   id: task-def
+      #   uses: aws-actions/amazon-ecs-render-task-definition@v1
+      #   with:
+      #     task-definition: ${{ env.ECS_TASK_DEFINITION }}
+      #     container-name: ${{ env.CONTAINER_NAME }}
+      #     image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+
+      # - name: Deploy Amazon ECS task definition
+      #   uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      #   with:
+      #     task-definition: ${{ steps.task-def.outputs.task-definition }}
+      #     service: ${{ steps.check-esc-service.outputs == 'MISSING' && env.ECS_SERVICE || '' }}
+      #     cluster: ${{ env.ECS_CLUSTER }}
