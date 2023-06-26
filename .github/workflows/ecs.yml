@@ -50,7 +50,7 @@ jobs:
       - name: Check Amazon ECS service
         id: check-esc-service
         run: |
-          echo "reason=$(aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query "failures[0].reason" --output text)" >> $GITHUB_OUTPUT
+          echo "status=$(aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query "services[0].status" --output text)" >> $GITHUB_OUTPUT
 
       - name: Fill in the new image ID in the Amazon ECS task definition
         id: task-def
@@ -64,5 +64,5 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ steps.check-esc-service.outputs.reason == 'MISSING' && '' || env.ECS_SERVICE }}
+          service: ${{ steps.check-esc-service.outputs.status == 'ACTIVE' && env.ECS_SERVICE || '' }}
           cluster: ${{ env.ECS_CLUSTER }}
