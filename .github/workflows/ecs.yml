@@ -1,0 +1,65 @@
+name: Deploy to Amazon ECS
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: ap-northeast-1
+  ECS_CLUSTER: default
+  BOT_NAME: monolithic_bot
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Create ECR repository if not exists
+        run: |
+          if ! aws ecr describe-repositories --repository-names "$BOT_NAME" >/dev/null 2>&1; then
+            aws ecr create-repository --repository-name "$BOT_NAME"
+          fi
+
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$BOT_NAME:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$BOT_NAME:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$BOT_NAME:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Installs an ecspresso binary
+        uses: kayac/ecspresso@v2
+
+      - name: Describes default subnet for the Availability Zone
+        id: describe-subnets
+        run: |
+          echo "subnets=$(aws ec2 describe-subnets --filters Name=default-for-az,Values=true --query Subnets[].SubnetId --output text | sed 's/\t/","/g')" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Amazon ECS
+        env:
+          SUBNETS: ${{ steps.describe-subnets.outputs.subnets }}
+          IMAGE: ${{ steps.build-image.outputs.image }}
+        run: |
+          ecspresso deploy --no-wait
