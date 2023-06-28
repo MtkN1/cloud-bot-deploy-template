@@ -4,15 +4,8 @@ on: push
 
 env:
   AWS_REGION: ap-northeast-1
-  ECR_REPOSITORY: monolithic_bot
-  ECS_SERVICE: monolithic_bot_fargate
   ECS_CLUSTER: BotCluster
-  ECS_TASK_DEFINITION: ./task_definitions/monolithic_bot.json
-  CONTAINER_NAME: monolithic_bot
-
-permissions:
-  id-token: write
-  contents: read
+  BOT_NAME: monolithic_bot
 
 jobs:
   deploy:
@@ -22,9 +15,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -37,32 +27,36 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build, tag, and push image to Amazon ECR
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          build-args: PACKAGE_NAME=cloud-bot-deploy-template
-          push: true
-          tags: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Check Amazon ECS service
-        id: check-esc-service
+      - name: Create ECR repository if not exists
         run: |
-          echo "status=$(aws ecs describe-services --cluster $ECS_CLUSTER --services $ECS_SERVICE --query "services[0].status" --output text)" >> $GITHUB_OUTPUT
+          if ! aws ecr describe-repositories --repository-names "$BOT_NAME" >/dev/null 2>&1; then
+            aws ecr create-repository --repository-name "$BOT_NAME"
+          fi
 
-      - name: Fill in the new image ID in the Amazon ECS task definition
-        id: task-def
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ${{ env.ECS_TASK_DEFINITION }}
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ steps.login-ecr.outputs.registry }}/${{ env.ECR_REPOSITORY }}:${{ github.sha }}
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          # Build a docker container and
+          # push it to ECR so that it can
+          # be deployed to ECS.
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-      - name: Deploy Amazon ECS task definition
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-        with:
-          task-definition: ${{ steps.task-def.outputs.task-definition }}
-          service: ${{ steps.check-esc-service.outputs.status == 'ACTIVE' && env.ECS_SERVICE || '' }}
-          cluster: ${{ env.ECS_CLUSTER }}
+      - name: Installs an ecspresso binary
+        uses: kayac/ecspresso@v2
+
+      - name: Describes default subnet for the Availability Zone
+        id: describe-subnets
+        run: |
+          echo "subnets=$(aws ec2 describe-subnets --filters Name=default-for-az,Values=true --query Subnets[].SubnetId --output text | sed 's/\t/","/g')" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Amazon ECS
+        env:
+          SUBNETS: ${{ steps.describe-subnets.outputs.subnets }}
+          IMAGE: ${{ steps.build-image.outputs.image }}
+        run: |
+          ecspresso deploy --no-wait
