@@ -7,7 +7,6 @@ readme = "README.md"
 packages = [
     {include = "monolithic_bot", from = "src"},
     {include = "function_bot", from = "src"},
-    {include = "monolithic_bot_copy_2", from = "src"},
 ]
 
 [tool.poetry.dependencies]
