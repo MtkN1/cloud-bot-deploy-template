@@ -7,7 +7,7 @@ on:
 env:
   AWS_REGION: ap-northeast-1
   ECS_CLUSTER: BotCluster
-  BOT_NAME: monolithic_bot_copy_1
+  BOT_NAME: monolithic_bot_copy_2
 
 jobs:
   deploy:
