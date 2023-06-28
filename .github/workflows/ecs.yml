@@ -5,7 +5,7 @@ on: push
 env:
   AWS_REGION: ap-northeast-1
   ECS_CLUSTER: BotCluster
-  BOT_NAME: monolithic_bot
+  BOT_NAME: monolithic_bot_copy_1
 
 jobs:
   deploy:
