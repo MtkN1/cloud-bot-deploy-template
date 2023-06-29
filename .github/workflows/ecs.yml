@@ -12,6 +12,7 @@ env:
 
 jobs:
   deploy:
+    if: github.event.created == false
     name: Deploy
     runs-on: ubuntu-latest
 
