@@ -1,9 +1,13 @@
 name: Docker Compose Deploy
 
-on: push
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   depoy:
+    if: github.event.created == false
     runs-on: ubuntu-latest
 
     steps:
