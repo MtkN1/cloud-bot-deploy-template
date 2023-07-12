@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: monolithic-bot
+  name: monolithic-bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: monolithic-bot
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: monolithic-bot
+    spec:
+      containers:
+      - image: LOCATION-docker.pkg.dev/PROJECT_ID/REPOSITORY/IMAGE:TAG
+        name: monolithic-bot
+        resources: {}
+status: {}
