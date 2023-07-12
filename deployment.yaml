@@ -20,6 +20,9 @@ spec:
       containers:
       - image: LOCATION-docker.pkg.dev/PROJECT_ID/REPOSITORY/IMAGE:TAG
         name: monolithic-bot
-        resources: {}
+        resources:
+          requests:
+            cpu: 250m
+            memory: 0.5Gi
         args: ["monolithic_bot"]
 status: {}
