@@ -25,4 +25,5 @@ spec:
             cpu: 250m
             memory: 0.5Gi
         args: ["monolithic_bot"]
+      serviceAccountName: compute
 status: {}

@@ -20,7 +20,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
   GAR_LOCATION: asia-northeast1
-  GKE_CLUSTER: k2-cluster-asia-northeast1
+  GKE_CLUSTER: bot-cluster
   GKE_ZONE: asia-northeast1
   DEPLOYMENT_NAME: monolithic-bot
   REPOSITORY: asia-northeast1-docker
